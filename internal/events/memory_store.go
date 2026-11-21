@@ -1,16 +1,10 @@
 package events
 
-import (
-	"errors"
-)
-
-var (
-	ErrEventNotFound = errors.New("event id does not exist")
-	ErrNoMoreTickets = errors.New("no tickets left")
-)
+var _ Reserver = (*MemoryStore)(nil)
 
 type MemoryStore struct {
 	eventsMap map[string]int
+	nextID    int
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -19,18 +13,22 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) Reserve(id string) error {
-	ticketsLeft, ok := s.eventsMap[id]
+func (s *MemoryStore) Reserve(eventID string) (Reservation, error) {
+	ticketsLeft, ok := s.eventsMap[eventID]
 	if !ok {
-		return ErrEventNotFound
+		return Reservation{}, ErrEventNotFound
 	}
 
 	if ticketsLeft <= 0 {
-		return ErrNoMoreTickets
+		return Reservation{}, ErrNoMoreTickets
 	}
 
-	s.eventsMap[id]--
-	return nil
+	s.eventsMap[eventID]--
+	s.nextID++
+	return Reservation{
+		Event: eventID,
+		ID:    s.nextID,
+	}, nil
 }
 
 func initializeEvents() map[string]int {

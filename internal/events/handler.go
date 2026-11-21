@@ -1,17 +1,23 @@
 package events
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 )
 
 type Handler struct {
-	service Reserver
+	reserver Reserver
+}
+
+type ReserveResponse struct {
+	Event string `json:"event"`
+	ID    int    `json:"id"`
 }
 
 func NewHandler(s Reserver) *Handler {
-	return &Handler{service: s}
+	return &Handler{reserver: s}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -19,20 +25,25 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *Handler) reserveTicket(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	log.Printf("attempting to reserve ticket with id %s", id)
+	eventID := r.PathValue("id")
 
-	err := h.service.Reserve(id)
+	res, err := h.reserver.Reserve(eventID)
 	if err != nil {
-		log.Println("error booking ticket:", err)
 		switch {
 		case errors.Is(err, ErrEventNotFound):
-			w.WriteHeader(http.StatusNotFound)
+			http.Error(w, "event not found", http.StatusNotFound)
 		case errors.Is(err, ErrNoMoreTickets):
-			w.WriteHeader(http.StatusConflict)
+			http.Error(w, "event sold out", http.StatusConflict)
 		default:
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println("error reserving ticket:", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
 		}
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(ReserveResponse{Event: res.Event, ID: res.ID}); err != nil {
+		log.Println("error encoding response:", err)
 	}
 }

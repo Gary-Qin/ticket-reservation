@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	eventsService := events.NewMemoryStore()
-	eventsHandler := events.NewHandler(eventsService)
+	store := events.NewMemoryStore()
+	eventsHandler := events.NewHandler(store)
 
 	mux := http.NewServeMux()
 	eventsHandler.RegisterRoutes(mux)

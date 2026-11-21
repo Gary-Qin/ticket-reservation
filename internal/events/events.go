@@ -1,6 +1,18 @@
-// Package events handles routes & services for /events/
+// Package events handles ticket reservation for events
 package events
 
+import "errors"
+
+var (
+	ErrEventNotFound = errors.New("event id does not exist")
+	ErrNoMoreTickets = errors.New("no tickets left")
+)
+
 type Reserver interface {
-	Reserve(id string) error
+	Reserve(eventID string) (Reservation, error)
+}
+
+type Reservation struct {
+	Event string
+	ID    int
 }
