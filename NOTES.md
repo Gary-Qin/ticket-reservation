@@ -17,6 +17,19 @@ Things I learned, decisions I made, and mistakes I hit while building this.
 - compile-time interface checks via `var _ <interface> = (*<implementation>)(nil)`.
 - compare errors with `errors.Is(error, error)`. important when errors are wrapped with `%w`
 
+### Docker
+
+- `docker compose up` & `docker compose down` for containers defined in `compose.yaml`
+  - `docker compose up --detach`
+  - `docker compose down --volumes`
+- `docker compose ps` (ps = process status)
+- `docker compose exec <container> <command>`
+
+## Postgres
+
+- single quotes for string literals, double quotes for column or table identifiers
+- `\dt` (tables), `\di` (indexes), `\d <table>`
+
 ## Concurrency
 
 <!-- M1 results go here: prediction vs. what actually happened, what -race reported -->

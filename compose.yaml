@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app # local dev only
+      POSTGRES_DB: tickets
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d # .sql files here run on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d tickets"]
+      interval: 2s
+      retries: 15
+
+  redis:
+    image: redis:8
+    ports: ["6379:6379"]
+
+volumes:
+  pgdata:
