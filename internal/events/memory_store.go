@@ -1,8 +1,11 @@
 package events
 
+import "sync"
+
 var _ Reserver = (*MemoryStore)(nil)
 
 type MemoryStore struct {
+	mu        sync.Mutex
 	eventsMap map[string]int
 	nextID    int
 }
@@ -14,17 +17,20 @@ func NewMemoryStore() *MemoryStore {
 }
 
 func (s *MemoryStore) Reserve(eventID string) (Reservation, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	ticketsLeft, ok := s.eventsMap[eventID]
 	if !ok {
 		return Reservation{}, ErrEventNotFound
 	}
-
 	if ticketsLeft <= 0 {
 		return Reservation{}, ErrNoMoreTickets
 	}
 
 	s.eventsMap[eventID]--
 	s.nextID++
+
 	return Reservation{
 		Event: eventID,
 		ID:    s.nextID,
