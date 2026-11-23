@@ -1,7 +1,12 @@
 // Package events handles ticket reservation for events
 package events
 
-import "errors"
+import (
+	"context"
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 var (
 	ErrEventNotFound = errors.New("event id does not exist")
@@ -9,10 +14,10 @@ var (
 )
 
 type Reserver interface {
-	Reserve(eventID string) (Reservation, error)
+	Reserve(ctx context.Context, eventID string) (Reservation, error)
 }
 
 type Reservation struct {
 	Event string
-	ID    int
+	ID    uuid.UUID
 }

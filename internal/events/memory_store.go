@@ -1,13 +1,17 @@
 package events
 
-import "sync"
+import (
+	"context"
+	"sync"
+
+	"github.com/google/uuid"
+)
 
 var _ Reserver = (*MemoryStore)(nil)
 
 type MemoryStore struct {
 	mu        sync.Mutex
 	eventsMap map[string]int
-	nextID    int
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -16,7 +20,7 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) Reserve(eventID string) (Reservation, error) {
+func (s *MemoryStore) Reserve(ctx context.Context, eventID string) (Reservation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -28,12 +32,16 @@ func (s *MemoryStore) Reserve(eventID string) (Reservation, error) {
 		return Reservation{}, ErrNoMoreTickets
 	}
 
+	uid, err := uuid.NewV7()
+	if err != nil {
+		return Reservation{}, err
+	}
+
 	s.eventsMap[eventID]--
-	s.nextID++
 
 	return Reservation{
 		Event: eventID,
-		ID:    s.nextID,
+		ID:    uid,
 	}, nil
 }
 

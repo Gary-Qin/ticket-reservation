@@ -25,17 +25,17 @@ func newTestServer(t *testing.T) (*httptest.Server, *MemoryStore) {
 
 // reserve sends one reservation request. It returns an error instead of
 // calling t.Fatal, because t.Fatal must not be called from other goroutines.
-func reserve(c *http.Client, url string) (status int, id int, err error) {
+func reserve(c *http.Client, url string) (status int, id string, err error) {
 	resp, err := c.Post(url, "application/json", nil)
 	if err != nil {
-		return 0, 0, err
+		return 0, "", err
 	}
 	defer resp.Body.Close() // without this, connections are never reused
 
 	if resp.StatusCode == http.StatusCreated {
 		var body ReserveResponse
 		if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
-			return resp.StatusCode, 0, fmt.Errorf("decoding body: %w", err)
+			return resp.StatusCode, "", fmt.Errorf("decoding body: %w", err)
 		}
 		id = body.ID
 	}
@@ -50,13 +50,13 @@ func TestReserveSequential(t *testing.T) {
 	initial := store.eventsMap[testEvent]
 
 	for want := 1; want <= initial; want++ {
-		status, id, err := reserve(srv.Client(), url)
+		status, _, err := reserve(srv.Client(), url)
 		if err != nil {
 			t.Fatalf("request %d: %v", want, err)
 		}
-		if status != http.StatusCreated || id != want {
-			t.Fatalf("request %d: got status %d id %d, want %d id %d",
-				want, status, id, http.StatusCreated, want)
+		if status != http.StatusCreated {
+			t.Fatalf("request %d: got status %d, want %d",
+				want, status, http.StatusCreated)
 		}
 	}
 
@@ -82,8 +82,7 @@ func TestReserveUnknownEvent(t *testing.T) {
 }
 
 // TestConcurrentReservers fires many requests at once and checks invariants
-// that must hold no matter how requests interleave. On the naive M1 store it
-// is EXPECTED TO FAIL; that failure is the point of M1.
+// that must hold no matter how requests interleave.
 func TestConcurrentReservers(t *testing.T) {
 	const requests = 1000
 
@@ -106,7 +105,7 @@ func TestConcurrentReservers(t *testing.T) {
 		sold     int        // even though the server under test isn't
 		rejected int
 		failed   int
-		ids      = map[int]int{} // reservation id -> times it was issued
+		ids      = map[string]int{} // reservation id -> times it was issued
 	)
 
 	// Every goroutine blocks on start; closing it releases them all at once,
@@ -161,7 +160,7 @@ func TestConcurrentReservers(t *testing.T) {
 	// Invariant 3: reservation ids are unique.
 	for id, n := range ids {
 		if n > 1 {
-			t.Errorf("reservation id %d was issued %d times", id, n)
+			t.Errorf("reservation id %s was issued %d times", id, n)
 		}
 	}
 }

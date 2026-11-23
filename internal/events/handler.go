@@ -13,7 +13,7 @@ type Handler struct {
 
 type ReserveResponse struct {
 	Event string `json:"event"`
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 }
 
 func NewHandler(s Reserver) *Handler {
@@ -27,7 +27,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 func (h *Handler) reserveTicket(w http.ResponseWriter, r *http.Request) {
 	eventID := r.PathValue("id")
 
-	res, err := h.reserver.Reserve(eventID)
+	res, err := h.reserver.Reserve(r.Context(), eventID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrEventNotFound):
@@ -43,7 +43,7 @@ func (h *Handler) reserveTicket(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(ReserveResponse{Event: res.Event, ID: res.ID}); err != nil {
+	if err := json.NewEncoder(w).Encode(ReserveResponse{Event: res.Event, ID: res.ID.String()}); err != nil {
 		log.Println("error encoding response:", err)
 	}
 }
