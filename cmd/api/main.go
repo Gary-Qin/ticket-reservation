@@ -29,8 +29,9 @@ func main() {
 	log.Println("connected to postgres")
 
 	// handlers init
-	store := events.NewMemoryStore()
-	eventsHandler := events.NewHandler(store)
+	// memoryStore := events.NewMemoryStore()
+	postgresStore := events.NewPostgresLockStore(pool)
+	eventsHandler := events.NewHandler(postgresStore)
 
 	// http server routes init
 	mux := http.NewServeMux()

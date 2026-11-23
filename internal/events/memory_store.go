@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -34,7 +35,7 @@ func (s *MemoryStore) Reserve(ctx context.Context, eventID string) (Reservation,
 
 	uid, err := uuid.NewV7()
 	if err != nil {
-		return Reservation{}, err
+		return Reservation{}, fmt.Errorf("generating uuid: %w", err)
 	}
 
 	s.eventsMap[eventID]--

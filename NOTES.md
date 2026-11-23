@@ -6,8 +6,9 @@ Things I learned, decisions I made, and mistakes I hit while building this.
 
 <!-- What went wrong, why, how I found it, what I'd do differently. -->
 
-- initially used `FormValue` instead of `PathValue` when trying to retrieve id from "/events/{id}/reserve"
-- initially missed leading slash in paths, causing the first segment to be treated as a domain name
+- used `FormValue` instead of `PathValue` when trying to retrieve id from "/events/{id}/reserve"
+- missed leading slash in paths, causing the first segment to be treated as a domain name
+- forgot to include `FOR UPDATE` in `SELECT` query in transaction
 
 ## Lessons & Decisions
 
@@ -29,6 +30,7 @@ Things I learned, decisions I made, and mistakes I hit while building this.
 
 - single quotes for string literals, double quotes for column or table identifiers
 - `\dt` (tables), `\di` (indexes), `\d <table>`
+- `BEGIN` & `COMMIT` for transactions, used for atomicity
 
 ## Concurrency
 
