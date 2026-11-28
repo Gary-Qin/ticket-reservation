@@ -31,6 +31,7 @@ Things I learned, decisions I made, and mistakes I hit while building this.
 - single quotes for string literals, double quotes for column or table identifiers
 - `\dt` (tables), `\di` (indexes), `\d <table>`
 - `BEGIN` & `COMMIT` for transactions, used for atomicity
+- `SELECT EXISTS (SELECT 1 FROM <table> WHERE ...)` is a simple existence check
 
 ## Concurrency
 

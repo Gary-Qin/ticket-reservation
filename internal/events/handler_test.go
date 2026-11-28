@@ -31,6 +31,7 @@ var stores = map[string]func(*testing.T) *storeFixture{
 	"memory":          newMemoryFixture,
 	"postgres_lock":   newPostgresLockFixture,
 	"postgres_atomic": newPostgresAtomicFixture,
+	"postgres_cte":    newPostgresCTEFixture,
 }
 
 // forEachStore runs fn as a subtest against every store.
@@ -66,6 +67,12 @@ func newPostgresAtomicFixture(t *testing.T) *storeFixture {
 	t.Helper()
 	pool := newTestPool(t)
 	return newPostgresFixture(pool, NewPostgresAtomicStore(pool))
+}
+
+func newPostgresCTEFixture(t *testing.T) *storeFixture {
+	t.Helper()
+	pool := newTestPool(t)
+	return newPostgresFixture(pool, NewPostgresCTEStore(pool))
 }
 
 // newTestPool connects to the test database and resets it. It skips the test
