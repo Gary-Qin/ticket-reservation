@@ -28,8 +28,9 @@ type storeFixture struct {
 
 // stores lists every implementation. Each constructor returns fresh state.
 var stores = map[string]func(*testing.T) *storeFixture{
-	"memory":        newMemoryFixture,
-	"postgres_lock": newPostgresLockFixture,
+	"memory":          newMemoryFixture,
+	"postgres_lock":   newPostgresLockFixture,
+	"postgres_atomic": newPostgresAtomicFixture,
 }
 
 // forEachStore runs fn as a subtest against every store.
@@ -59,6 +60,12 @@ func newPostgresLockFixture(t *testing.T) *storeFixture {
 	t.Helper()
 	pool := newTestPool(t)
 	return newPostgresFixture(pool, NewPostgresLockStore(pool))
+}
+
+func newPostgresAtomicFixture(t *testing.T) *storeFixture {
+	t.Helper()
+	pool := newTestPool(t)
+	return newPostgresFixture(pool, NewPostgresAtomicStore(pool))
 }
 
 // newTestPool connects to the test database and resets it. It skips the test
